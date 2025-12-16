@@ -1,0 +1,3 @@
+/home/ben/dev/cost-of-goods-monte-carlo/build/CMakeFiles/MyApp.dir
+/home/ben/dev/cost-of-goods-monte-carlo/build/CMakeFiles/edit_cache.dir
+/home/ben/dev/cost-of-goods-monte-carlo/build/CMakeFiles/rebuild_cache.dir

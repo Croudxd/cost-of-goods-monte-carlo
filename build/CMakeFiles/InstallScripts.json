@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/ben/dev/cost-of-goods-monte-carlo/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
