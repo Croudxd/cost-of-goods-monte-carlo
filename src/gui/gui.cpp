@@ -4,9 +4,16 @@
 #include "imgui.h"
 #include "math/random.h"
 #include "math/result.h"
+#include <algorithm>
 #include <vector>
 std::vector<Normal> objects;
 std::vector<Threepoint> threeobjects;
+static float max_result = 0.0f;
+static float mean = 0.0f;
+static float min = 0.0f;
+static float tenthpercentile = 0.0f;
+static float nintypercentile = 0.0f;
+static float laopercentage = 0.0f;
 
 void gui() {
   float x;
@@ -28,31 +35,39 @@ void gui() {
         "Setup_Cleaning",     "api_volume"};
 
     for (const auto &name : names) {
-      objects.emplace_back(name, 0.0f, 0.0f, 0.0f, 0.0f);
+      objects.emplace_back(name, 1.0f, 1.0f, 1.0f, 1.0f);
     }
     for (const auto &name : threevarname) {
-      threeobjects.emplace_back(name, 0.0f, 0.0f, 0.0f);
+      threeobjects.emplace_back(name, 1.0f, 1.0f, 1.0f);
     }
   }
   for (size_t i = 0; i < objects.size(); i++) {
     Normal &n = objects[i];
+
+    ImGui::PushID(static_cast<int>(i));
     ImGui::Text("%s", n.getName().c_str());
-    ImGui::InputFloat(("One##" + std::to_string(i)).c_str(), &n.getOne());
-    ImGui::InputFloat(("Two##" + std::to_string(i)).c_str(), &n.getTwo());
-    ImGui::InputFloat(("Three##" + std::to_string(i)).c_str(), &n.getThree());
-    ImGui::InputFloat(("Four##" + std::to_string(i)).c_str(), &n.getFour());
+    ImGui::InputFloat(("##one" + std::to_string(i)).c_str(), &n.getOne());
+    ImGui::InputFloat(("##two" + std::to_string(i)).c_str(), &n.getTwo());
+    ImGui::InputFloat(("##three" + std::to_string(i)).c_str(), &n.getThree());
+    ImGui::InputFloat(("##four" + std::to_string(i)).c_str(), &n.getFour());
+    ImGui::PopID();
   }
   for (size_t i = 0; i < threeobjects.size(); i++) {
     Threepoint &n = threeobjects[i];
+    ImGui::PushID(static_cast<int>(i));
     ImGui::Text("%s", n.getName().c_str());
-    ImGui::InputFloat(("One##" + std::to_string(i)).c_str(), &n.getMin());
-    ImGui::InputFloat(("Two##" + std::to_string(i)).c_str(), &n.getMode());
-    ImGui::InputFloat(("Three##" + std::to_string(i)).c_str(), &n.getMax());
+    ImGui::InputFloat(("##min" + std::to_string(i)).c_str(), &n.getMin());
+    ImGui::InputFloat(("##mode" + std::to_string(i)).c_str(), &n.getMode());
+    ImGui::InputFloat(("##max" + std::to_string(i)).c_str(), &n.getMax());
+    ImGui::PopID();
   }
 
   static int a = 0;
   ImGui::InputInt("Simulation Count", &a);
   if (ImGui::Button("Calculate")) {
+    if (objects[0].getOne() == 0.0) {
+      ImGui::Text("Dont leave any variables as 0.");
+    }
     std::vector<std::vector<float>> normal_distribution_vector;
     std::vector<std::vector<float>> triangle_distribution_vector;
     for (int x = 0; x < objects.size(); x++) {
@@ -94,8 +109,15 @@ void gui() {
 
     std::vector<float> lno = LnO(tot_time, triangle_distribution_vector[2],
                                  triangle_distribution_vector[10]);
+    std::vector<float> results;
+    for (int x = 0; x < rm.size(); x++) {
+      float result = rm[x] + lno[x];
+      results.push_back(result);
+    }
+    max_result = *std::max_element(results.begin(), results.end());
     Percentage_LnO(rm, lno);
   }
+  ImGui::Text("Max: %f", max_result);
   ImGui::End();
   ImGui::Render();
 }

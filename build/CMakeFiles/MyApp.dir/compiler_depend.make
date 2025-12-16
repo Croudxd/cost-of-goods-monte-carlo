@@ -1402,8 +1402,10 @@ CMakeFiles/MyApp.dir/src/gui/gui.cpp.o: /home/ben/dev/cost-of-goods-monte-carlo/
   /usr/include/bits/waitstatus.h \
   /usr/include/bits/wchar.h \
   /usr/include/bits/wordsize.h \
+  /usr/include/c++/15.2.1/algorithm \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
+  /usr/include/c++/15.2.1/bits/algorithmfwd.h \
   /usr/include/c++/15.2.1/bits/alloc_traits.h \
   /usr/include/c++/15.2.1/bits/allocator.h \
   /usr/include/c++/15.2.1/bits/basic_string.h \
@@ -1432,18 +1434,22 @@ CMakeFiles/MyApp.dir/src/gui/gui.cpp.o: /home/ben/dev/cost-of-goods-monte-carlo/
   /usr/include/c++/15.2.1/bits/refwrap.h \
   /usr/include/c++/15.2.1/bits/requires_hosted.h \
   /usr/include/c++/15.2.1/bits/std_abs.h \
+  /usr/include/c++/15.2.1/bits/stl_algo.h \
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
   /usr/include/c++/15.2.1/bits/stl_function.h \
+  /usr/include/c++/15.2.1/bits/stl_heap.h \
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_funcs.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_types.h \
   /usr/include/c++/15.2.1/bits/stl_pair.h \
+  /usr/include/c++/15.2.1/bits/stl_tempbuf.h \
   /usr/include/c++/15.2.1/bits/stl_uninitialized.h \
   /usr/include/c++/15.2.1/bits/stl_vector.h \
   /usr/include/c++/15.2.1/bits/string_view.tcc \
   /usr/include/c++/15.2.1/bits/stringfwd.h \
+  /usr/include/c++/15.2.1/bits/uniform_int_dist.h \
   /usr/include/c++/15.2.1/bits/uses_allocator.h \
   /usr/include/c++/15.2.1/bits/uses_allocator_args.h \
   /usr/include/c++/15.2.1/bits/utility.h \
@@ -1466,6 +1472,8 @@ CMakeFiles/MyApp.dir/src/gui/gui.cpp.o: /home/ben/dev/cost-of-goods-monte-carlo/
   /usr/include/c++/15.2.1/initializer_list \
   /usr/include/c++/15.2.1/iosfwd \
   /usr/include/c++/15.2.1/new \
+  /usr/include/c++/15.2.1/pstl/execution_defs.h \
+  /usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h \
   /usr/include/c++/15.2.1/pstl/pstl_config.h \
   /usr/include/c++/15.2.1/string \
   /usr/include/c++/15.2.1/string_view \
@@ -2116,8 +2124,6 @@ CMakeFiles/MyApp.dir/include/imgui/backends/imgui_impl_glfw.cpp.o:
 
 /usr/include/c++/15.2.1/pstl/glue_numeric_defs.h:
 
-/usr/include/c++/15.2.1/pstl/execution_defs.h:
-
 /usr/include/c++/15.2.1/cstdint:
 
 /home/ben/dev/cost-of-goods-monte-carlo/src/math/random.cpp:
@@ -2182,12 +2188,6 @@ CMakeFiles/MyApp.dir/src/main.cpp.o:
 
 /usr/include/asm-generic/posix_types.h:
 
-/usr/include/c++/15.2.1/exception:
-
-/usr/include/asm-generic/types.h:
-
-/usr/include/asm-generic/bitsperlong.h:
-
 /usr/lib/libstdc++.so:
 
 /usr/include/locale.h:
@@ -2195,6 +2195,10 @@ CMakeFiles/MyApp.dir/src/main.cpp.o:
 /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/c++locale.h:
 
 /usr/include/c++/15.2.1/string_view:
+
+/usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h:
+
+/usr/include/c++/15.2.1/pstl/execution_defs.h:
 
 /usr/include/c++/15.2.1/new:
 
@@ -2208,13 +2212,23 @@ CMakeFiles/MyApp.dir/src/main.cpp.o:
 
 /usr/include/c++/15.2.1/bits/stringfwd.h:
 
-/usr/include/pthread.h:
+/usr/include/c++/15.2.1/exception:
 
-/usr/include/c++/15.2.1/bits/stl_uninitialized.h:
+/usr/include/asm-generic/types.h:
+
+/usr/include/asm-generic/bitsperlong.h:
+
+/usr/include/c++/15.2.1/bits/stl_heap.h:
 
 /usr/include/c++/15.2.1/bits/stl_function.h:
 
 /usr/include/c++/15.2.1/bits/stl_bvector.h:
+
+/usr/include/pthread.h:
+
+/usr/include/c++/15.2.1/bits/stl_uninitialized.h:
+
+/usr/include/c++/15.2.1/bits/stl_algo.h:
 
 CMakeFiles/MyApp.dir/include/imgui/imgui_draw.cpp.o:
 
@@ -2252,6 +2266,8 @@ CMakeFiles/MyApp.dir/include/imgui/imgui_draw.cpp.o:
 
 /usr/include/c++/15.2.1/backward/binders.h:
 
+/usr/include/c++/15.2.1/algorithm:
+
 /usr/include/bits/types/wint_t.h:
 
 /usr/include/bits/types/error_t.h:
@@ -2273,6 +2289,8 @@ CMakeFiles/MyApp.dir/include/imgui/imgui_draw.cpp.o:
 /home/ben/dev/cost-of-goods-monte-carlo/include/imgui/imgui_tables.cpp:
 
 /home/ben/dev/cost-of-goods-monte-carlo/include/imgui/imstb_truetype.h:
+
+/usr/include/c++/15.2.1/bits/algorithmfwd.h:
 
 /home/ben/dev/cost-of-goods-monte-carlo/include/imgui/imstb_rectpack.h:
 
@@ -2600,9 +2618,9 @@ CMakeFiles/MyApp.dir/src/math/random.cpp.o:
 
 /usr/include/X11/extensions/render.h:
 
-/usr/include/c++/15.2.1/bits/uniform_int_dist.h:
-
 /usr/include/c++/15.2.1/cwchar:
+
+/usr/include/c++/15.2.1/bits/uniform_int_dist.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/wmmintrin.h:
 
@@ -3029,6 +3047,8 @@ CMakeFiles/MyApp.dir/src/gui/gui.cpp.o:
 /usr/include/c++/15.2.1/cwctype:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/avx512vlintrin.h:
+
+/usr/include/c++/15.2.1/bits/stl_tempbuf.h:
 
 /usr/include/stdc-predef.h:
 
