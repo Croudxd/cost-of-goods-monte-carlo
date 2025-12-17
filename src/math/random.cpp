@@ -39,11 +39,3 @@ std::vector<float> gen_triangle_distribution_vector(int simsize,
   return vec;
 }
 
-std::vector<float> gen_discrete_distribution_vector(int simsize,
-                                                    Threepoint &n) {
-
-  std::vector<float> values = {n.getMin(), n.getMode(), n.getMax()};
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::discrete_distribution<> d(values.begin(), values.end());
-}

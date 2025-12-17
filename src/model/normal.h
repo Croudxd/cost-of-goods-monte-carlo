@@ -5,24 +5,15 @@ private:
   std::string name;
   float mean;
   float stddev;
-  float minusthreedev;
-  float plusthreedev;
-
 public:
-  Normal(std::string name, float one, float two, float three, float four)
-      : name(name), mean(one), stddev(two), minusthreedev(three),
-        plusthreedev(four) {}
+  Normal(std::string name, float one, float two) : name(name), mean(one), stddev(two){}
 
   float &getOne() { return mean; };
   float &getTwo() { return stddev; };
-  float &getThree() { return minusthreedev; };
-  float &getFour() { return plusthreedev; };
   std::string &getName() { return name; };
 
   void setOne(float one) { this->mean = one; }
   void setTwo(float two) { this->stddev = two; }
-  void setThree(float three) { this->minusthreedev = three; }
-  void setFour(float four) { this->plusthreedev = four; }
 };
 
 class Threepoint {

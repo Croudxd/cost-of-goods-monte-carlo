@@ -68,6 +68,7 @@ std::vector<float> LnO(std::vector<float> tot_time, std::vector<float> lno_rate,
   }
   return results;
 }
+
 std::vector<float> Percentage_LnO(std::vector<float> rm,
                                   std::vector<float> lno) {
 
