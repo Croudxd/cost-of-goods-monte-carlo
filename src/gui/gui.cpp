@@ -6,10 +6,13 @@
 #include "math/result.h"
 #include <algorithm>
 #include <vector>
-#include <chrono>
 #include <mutex>
+#include <utility>
+#include <future>
 #include <numeric>
 #include <thread>
+
+//Vectors
 std::vector<Normal> objects;
 std::mutex objects_mutex;
 std::vector<Threepoint> threeobjects;
@@ -38,6 +41,8 @@ static float lnopercent_result = 0.0f;
 
 
 
+//Helpers
+
 float mean(std::vector<float> vec)
 {
  if(vec.empty()){
@@ -65,6 +70,11 @@ float percentile(std::vector<float> data, float p)
     return data[lo] * (1.0f - weight) + data[hi] * weight;
 }
 
+
+
+
+
+//Main monte carlo
 void calculate()
 {
     std::lock_guard< std::mutex> lock1(objects_mutex);
@@ -113,6 +123,7 @@ void calculate()
       float result = rm[x] + lno[x];
       results.push_back(result);
     }
+
     std::lock_guard< std::mutex> lock(max_result_mutex);
     max_result = *std::max_element(results.begin(), results.end());
 
@@ -130,12 +141,14 @@ void calculate()
 
     std::lock_guard<std::mutex> nintypercentile_lock(nintypercentile_result_mutex);
     nintypercentile_result = percentile(results, 0.90f);
-
-
-
 }
 
+
+
 void gui() {
+  objects.reserve(10000000);
+  threeobjects.reserve(10000000);
+
   float x;
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
@@ -143,45 +156,59 @@ void gui() {
   ImGui::Begin("Cost of goods");
 
   if (objects.empty()) {
+
     std::vector<std::string> names = {
         "RM1",     "RM2",    "RM_SolvntRgnt_Costs",
         "UF_Step1",         "UF_Step2",        "Batch_Size_Step1",
         "Batch_Size_Step2", "Batch_Size_Step3"};
-    // Initialize Normal objects with zeros
     std::vector<std::string> threevarname = {
-        "RM1_CostKg",   "RM1_CostKg",   "LnO_Rate",
+        "RM1_CostKg",   "RM2_CostKg",   "LnO_Rate",
         "Cycle_Time_Step1",   "Restart_Time_Step1", "Cycle_Time_Step2",
         "Restart_Time_Step2", "Cycle_Time_Step3",   "Restart_Time_Step3",
         "Setup_Cleaning",     "api_volume"};
 
-    for (const auto &name : names) {
-      std::lock_guard< std::mutex> lock1(objects_mutex);
-      objects.emplace_back(name, 1.0f, 1.0f);
+    // Initialize  objects with ones 
+    { 
+        std::lock_guard<std::mutex> lock1(objects_mutex);
+        for (const auto &name : names) {
+          std::lock_guard<std::mutex> lock1(objects_mutex);
+          objects.emplace_back(name, 1.0f, 1.0f);
+        }
     }
-    for (const auto &name : threevarname) {
-      std::lock_guard< std::mutex> lock1(threeobjects_mutex);
-      threeobjects.emplace_back(name, 1.0f, 1.0f, 1.0f);
-    }
-  }
-  for (size_t i = 0; i < objects.size(); i++) {
-    std::lock_guard< std::mutex> lock1(objects_mutex);
-    Normal &n = objects[i];
 
-    ImGui::PushID(static_cast<int>(i));
-    ImGui::Text("%s", n.getName().c_str());
-    ImGui::InputFloat(("##one" + std::to_string(i)).c_str(), &n.getOne());
-    ImGui::InputFloat(("##two" + std::to_string(i)).c_str(), &n.getTwo());
-    ImGui::PopID();
+    {
+        std::lock_guard< std::mutex> lock1(threeobjects_mutex);
+        for (const auto &name : threevarname) {
+          threeobjects.emplace_back(name, 1.0f, 1.0f, 1.0f);
+        }
+    }
+
   }
-  for (size_t i = 0; i < threeobjects.size(); i++) {
-    std::lock_guard< std::mutex> lock1(threeobjects_mutex);
-    Threepoint &n = threeobjects[i];
-    ImGui::PushID(static_cast<int>(i));
-    ImGui::Text("%s", n.getName().c_str());
-    ImGui::InputFloat(("##min" + std::to_string(i)).c_str(), &n.getMin());
-    ImGui::InputFloat(("##mode" + std::to_string(i)).c_str(), &n.getMode());
-    ImGui::InputFloat(("##max" + std::to_string(i)).c_str(), &n.getMax());
-    ImGui::PopID();
+
+  {
+      std::lock_guard< std::mutex> lock1(objects_mutex);
+      for (size_t i = 0; i < objects.size(); i++) {
+        Normal &n = objects[i];
+
+        ImGui::PushID(static_cast<int>(i));
+        ImGui::Text("%s", n.getName().c_str());
+        ImGui::InputFloat(("##one" + std::to_string(i)).c_str(), &n.getOne());
+        ImGui::InputFloat(("##two" + std::to_string(i)).c_str(), &n.getTwo());
+        ImGui::PopID();
+      }
+  }
+
+  {
+      std::lock_guard< std::mutex> lock1(threeobjects_mutex);
+      for (size_t i = 0; i < threeobjects.size(); i++) {
+        Threepoint &n = threeobjects[i];
+        ImGui::PushID(static_cast<int>(i));
+        ImGui::Text("%s", n.getName().c_str());
+        ImGui::InputFloat(("##min" + std::to_string(i)).c_str(), &n.getMin());
+        ImGui::InputFloat(("##mode" + std::to_string(i)).c_str(), &n.getMode());
+        ImGui::InputFloat(("##max" + std::to_string(i)).c_str(), &n.getMax());
+        ImGui::PopID();
+      }
   }
 
   {
@@ -195,13 +222,11 @@ void gui() {
       }
       else
       {
-        std::thread worker([] {
-            calculate();
-            // send result back to GUI thread
+      
+        std::future<void> future = std::async(std::launch::async, [] {
+            calculate(); // Perform the calculation in the background
         });
-        worker.detach();
       }
-       
   }
   float local_max;
   float local_min;
