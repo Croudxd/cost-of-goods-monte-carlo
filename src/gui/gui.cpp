@@ -8,8 +8,8 @@
 #include <vector>
 #include <chrono>
 #include <mutex>
+#include <numeric>
 #include <thread>
-
 std::vector<Normal> objects;
 std::mutex objects_mutex;
 std::vector<Threepoint> threeobjects;
@@ -20,18 +20,50 @@ std::mutex simsize_mutex;
 //Results
 std::mutex max_result_mutex;
 static float max_result = 0.0f;
+
 std::mutex mean_result_mutex;
 static float mean_result = 0.0f;
+
 std::mutex tenthpercentile_result_mutex;
 static float tenthpercentile_result = 0.0f;
+
 std::mutex nintypercentile_result_mutex;
 static float nintypercentile_result = 0.0f;
+
 std::mutex min_result_mutex;
 static float min_result = 0.0f;
+
 std::mutex lnopercent_result_mutex;
 static float lnopercent_result = 0.0f;
 
 
+
+float mean(std::vector<float> vec)
+{
+ if(vec.empty()){
+        return 0;
+    }
+    auto count = static_cast<float>(vec.size());
+    return std::reduce(vec.begin(), vec.end()) / count;
+}
+float percentile(std::vector<float> data, float p)
+{
+    if (data.empty())
+        return 0.0f;
+
+    std::sort(data.begin(), data.end());
+
+    float idx = p * (data.size() - 1);
+    size_t lo = static_cast<size_t>(idx);
+    size_t hi = lo + 1;
+
+    if (hi >= data.size())
+        return data[lo];
+
+    // Linear interpolation (recommended)
+    float weight = idx - lo;
+    return data[lo] * (1.0f - weight) + data[hi] * weight;
+}
 
 void calculate()
 {
@@ -83,7 +115,23 @@ void calculate()
     }
     std::lock_guard< std::mutex> lock(max_result_mutex);
     max_result = *std::max_element(results.begin(), results.end());
-    
+
+    std::lock_guard<std::mutex> lnopercent_lock(lnopercent_result_mutex);
+    lnopercent_result  = mean(Percentage_LnO(rm, lno));
+
+    std::lock_guard<std::mutex> min_result_lock(min_result_mutex);
+    min_result = *std::min_element(results.begin(), results.end());
+
+    std::lock_guard<std::mutex> mean_result_lock(mean_result_mutex);
+    mean_result = mean(results);
+    //10th and 90th
+    std::lock_guard<std::mutex> tenthpercentile_lock(tenthpercentile_result_mutex);
+    tenthpercentile_result = percentile(results, 0.10f);
+
+    std::lock_guard<std::mutex> nintypercentile_lock(nintypercentile_result_mutex);
+    nintypercentile_result = percentile(results, 0.90f);
+
+
 
 }
 
@@ -156,11 +204,27 @@ void gui() {
        
   }
   float local_max;
+  float local_min;
+  float local_mean;
+  float local_ninty;
+  float local_tenth;
   {
-    std::lock_guard<std::mutex> lock(max_result_mutex);
+    std::lock_guard<std::mutex> maxlock(max_result_mutex);
     local_max = max_result;
+    std::lock_guard<std::mutex> minlock(min_result_mutex);
+    local_min = min_result;
+    std::lock_guard<std::mutex> meanlock(mean_result_mutex);
+    local_mean = mean_result;
+    std::lock_guard<std::mutex> nintylock(nintypercentile_result_mutex);
+    local_ninty = nintypercentile_result;
+    std::lock_guard<std::mutex> tenthlock(tenthpercentile_result_mutex);
+    local_tenth = tenthpercentile_result;
   }
   ImGui::Text("Max: %f", local_max);
+  ImGui::Text("Min: %f", local_min);
+  ImGui::Text("Mean: %f", local_mean);
+  ImGui::Text("10th percentile: %f", local_tenth);
+  ImGui::Text("90th percentile: %f", local_ninty);
   ImGui::End();
   ImGui::Render();
 }
