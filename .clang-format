@@ -1,0 +1,26 @@
+# Base style
+BasedOnStyle: Google
+
+# Indentation
+IndentWidth: 4       # 4 spaces per indent
+TabWidth: 4
+UseTab: Never        # use spaces, not tab characters
+
+# Braces
+BreakBeforeBraces: Allman  # put braces on a new line
+
+# Spaces inside parentheses for control statements
+SpaceAfterControlStatementKeyword: true
+SpacesInParentheses: true
+
+# Keep long lines
+ColumnLimit: 0       # 0 = no automatic line wrapping
+
+# Pointer/reference alignment
+PointerAlignment: Left
+DerivePointerAlignment: false
+
+# Short statements
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
