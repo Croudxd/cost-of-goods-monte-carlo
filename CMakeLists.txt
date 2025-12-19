@@ -16,20 +16,40 @@ file(GLOB_RECURSE SOURCES src/*.cpp)
 
 add_executable(MyApp ${SOURCES} ${IMGUI_SOURCES})
 
-# Include directories
+# Include directories (platform-independent)
 target_include_directories(MyApp PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    include
-    include/imgui
-    include/imgui/backends
-    include/GLFW
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/imgui
+    ${CMAKE_SOURCE_DIR}/include/imgui/backends
 )
 
-# Link static GLFW and system libraries (Linux)
-target_link_libraries(MyApp PRIVATE
-    ${CMAKE_SOURCE_DIR}/lib/libglfw3.a
-    pthread
-    dl
-    GL
-)
+# Platform-specific settings
+if(WIN32)
+    message(STATUS "Configuring for Windows")
+
+    # Path to your Windows static GLFW
+    set(GLFW_LIB "${CMAKE_SOURCE_DIR}/lib/windows/libglfw3.a")
+
+    target_link_libraries(MyApp PRIVATE
+        ${GLFW_LIB}
+        opengl32
+        gdi32
+        user32
+        kernel32
+        winmm
+    )
+
+elseif(UNIX)
+    message(STATUS "Configuring for Linux")
+
+    set(GLFW_LIB "${CMAKE_SOURCE_DIR}/lib/linux/libglfw3.a")
+
+    target_link_libraries(MyApp PRIVATE
+        ${GLFW_LIB}
+        pthread
+        dl
+        GL
+    )
+endif()
 
