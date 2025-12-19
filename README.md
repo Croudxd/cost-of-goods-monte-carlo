@@ -12,6 +12,10 @@ Both are small enough to be statically linked. so no dependencies other than if 
 ### Building on linux.
 
 ```c
+git clone https://github.com/yourname/project-name.git
+```
+
+```c
 mkdir build & cd build
 ```
 
@@ -23,6 +27,10 @@ cmake ..
 make -j
 ```
 ### Building on windows.
+
+```c
+git clone https://github.com/yourname/project-name.git
+```
 
 ```c
 mkdir build
@@ -49,3 +57,6 @@ Please email me at
 benjamincroud@gmail.com
 ```
 for any bug reports.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
