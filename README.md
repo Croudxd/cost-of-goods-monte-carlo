@@ -6,6 +6,9 @@ Monte carlo model for predicting the price of goods from select inputs.
 ## Built using glfw and ImGui.
 Both are small enough to be statically linked. so no dependencies other than if your building cmake and a cpp compiler (20+).
 
+## Preview
+![Gif](/program.gif)
+
 ### Building on linux.
 
 `mkdir build & cd build`
