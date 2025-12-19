@@ -11,15 +11,36 @@ Both are small enough to be statically linked. so no dependencies other than if 
 
 ### Building on linux.
 
-`mkdir build & cd build`
+```c
+mkdir build & cd build
+```
 
-`cmake ..`
+```c
+cmake ..
+```
 
-`make -j`
+```c
+make -j
+```
+### Building on windows.
 
-Now built we can run the program :
+```c
+mkdir build
+```
 
-`./MyApp`
+```c
+cmake ..
+```
+
+```c
+cmake --build . --config Release
+```
+
+#### Now built we can run the program :
+
+```c
+./MyApp
+```
 
 
 
