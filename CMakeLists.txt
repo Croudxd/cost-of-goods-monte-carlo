@@ -1,55 +1,74 @@
 cmake_minimum_required(VERSION 3.15)
 project(MyApp LANGUAGES CXX)
 
+# ---------------------------
+# C++ standard
+# ---------------------------
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# ---------------------------
+# Force static CRT on MSVC (single exe)
+# ---------------------------
+if(MSVC)
+    foreach(flag_var
+            CMAKE_C_FLAGS_RELEASE
+            CMAKE_C_FLAGS_DEBUG
+            CMAKE_CXX_FLAGS_RELEASE
+            CMAKE_CXX_FLAGS_DEBUG)
+        if(${flag_var} MATCHES "/MD")
+            string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+        endif()
+    endforeach()
+endif()
+
+# ---------------------------
+# GLFW
+# ---------------------------
+if(WIN32)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE) # static lib
+
+    add_subdirectory(external/GLFW)
+endif()
+
+# ---------------------------
 # ImGui sources
+# ---------------------------
 file(GLOB IMGUI_SOURCES
     include/imgui/*.cpp
     include/imgui/backends/imgui_impl_glfw.cpp
     include/imgui/backends/imgui_impl_opengl3.cpp
 )
 
-# Your source files
-file(GLOB_RECURSE SOURCES src/*.cpp)
-
-add_executable(MyApp ${SOURCES} ${IMGUI_SOURCES})
-
-# Include directories (platform-independent)
-target_include_directories(MyApp PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/include/imgui
-    ${CMAKE_SOURCE_DIR}/include/imgui/backends
+add_library(imgui STATIC ${IMGUI_SOURCES})
+target_include_directories(imgui PRIVATE
+    include/imgui
+    include/imgui/backends
 )
 
-# Platform-specific settings
+# ---------------------------
+# Your executable
+# ---------------------------
+file(GLOB_RECURSE SOURCES src/*.cpp)
+add_executable(MyApp ${SOURCES})
+
+# Include directories
+target_include_directories(MyApp PRIVATE
+    src
+    include
+    include/imgui
+    include/imgui/backends
+)
+
+# Link libraries
 if(WIN32)
-    message(STATUS "Configuring for Windows")
-
-    # Path to your Windows static GLFW
-    set(GLFW_LIB "${CMAKE_SOURCE_DIR}/lib/windows/libglfw3.a")
-
-    target_link_libraries(MyApp PRIVATE
-        ${GLFW_LIB}
-        opengl32
-        gdi32
-        user32
-        kernel32
-        winmm
-    )
-
+    target_link_libraries(MyApp PRIVATE imgui glfw opengl32 gdi32 user32 kernel32 winmm)
 elseif(UNIX)
-    message(STATUS "Configuring for Linux")
-
+    # For Linux if needed
     set(GLFW_LIB "${CMAKE_SOURCE_DIR}/lib/linux/libglfw3.a")
-
-    target_link_libraries(MyApp PRIVATE
-        ${GLFW_LIB}
-        pthread
-        dl
-        GL
-    )
+    target_link_libraries(MyApp PRIVATE imgui ${GLFW_LIB} pthread dl GL)
 endif()
-
