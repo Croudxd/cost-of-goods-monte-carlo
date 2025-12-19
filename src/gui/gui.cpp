@@ -7,6 +7,7 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#include <GLFW/glfw3.h>
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -169,16 +170,29 @@ void results()
     ImGui::Text( "90th percentile: %f", local_ninty );
 }
 
-void gui()
+void gui(GLFWwindow* window)
 {
     objects.reserve( 10000000 );
     threeobjects.reserve( 10000000 );
 
     float x;
+    int display_w, display_h;
+    glfwGetFramebufferSize( window, &display_w, &display_h );
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2( (float)display_w, (float)display_h );
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    ImGui::Begin( "Cost of goods" );
+
+    // Fullscreen ImGui window
+    ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
+    ImGui::SetNextWindowSize( io.DisplaySize );
+    ImGui::Begin( "Cost of goods", nullptr,
+                  ImGuiWindowFlags_NoTitleBar |
+                      ImGuiWindowFlags_NoResize |
+                      ImGuiWindowFlags_NoMove |
+                      ImGuiWindowFlags_NoCollapse );
 
     if ( objects.empty() )
     {

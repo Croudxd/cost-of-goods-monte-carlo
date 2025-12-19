@@ -1,2 +1,3 @@
 #pragma once
-void gui();
+#include <GLFW/glfw3.h>
+void gui( GLFWwindow* window );

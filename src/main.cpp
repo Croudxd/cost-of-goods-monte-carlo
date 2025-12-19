@@ -20,7 +20,7 @@ int main()
     glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
 
     GLFWwindow* window =
-        glfwCreateWindow( 800, 600, "GLFW + ImGui Example", nullptr, nullptr );
+        glfwCreateWindow( 800, 600, "Cost of goods monte carlo", nullptr, nullptr );
     if ( !window )
     {
         std::cerr << "Failed to create GLFW window\n";
@@ -43,7 +43,7 @@ int main()
     while ( !glfwWindowShouldClose( window ) )
     {
         glfwPollEvents();
-        gui();
+        gui(window);
         int display_w, display_h;
         glfwGetFramebufferSize( window, &display_w, &display_h );
         glViewport( 0, 0, display_w, display_h );
