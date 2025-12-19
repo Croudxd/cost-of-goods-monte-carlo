@@ -31,6 +31,10 @@ if(WIN32)
     # Path to your Windows static GLFW
     set(GLFW_LIB "${CMAKE_SOURCE_DIR}/lib/windows/libglfw3.a")
 
+    set_target_properties(MyApp PROPERTIES
+        LINK_FLAGS "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lwinpthread -Wl,-Bdynamic"
+    )
+
     target_link_libraries(MyApp PRIVATE
         ${GLFW_LIB}
         opengl32
