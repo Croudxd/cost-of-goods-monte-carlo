@@ -7,6 +7,18 @@
 #include "gui/gui.h"
 #include "imgui.h"
 
+#ifdef _WIN32
+#include <windows.h>
+
+// Wrapper WinMain for Windows GUI
+int main();  // forward declaration
+
+int WINAPI WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    return main();  // just call your normal main
+}
+#endif
+
 int main()
 {
     if ( !glfwInit() )

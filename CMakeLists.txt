@@ -31,7 +31,6 @@ if(WIN32)
     set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
     set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
     set(GLFW_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE) # static lib
-
     add_subdirectory(external/GLFW)
 endif()
 
@@ -49,14 +48,23 @@ target_include_directories(imgui PRIVATE
     include/imgui
     include/imgui/backends
     external/GLFW/include
-
 )
 
 # ---------------------------
 # Your executable
 # ---------------------------
-file(GLOB_RECURSE SOURCES src/*.cpp)
-add_executable(MyApp ${SOURCES})
+file(GLOB_RECURSE SOURCES
+    src/main.cpp
+    src/gui/gui.cpp
+    src/math/random.cpp
+    src/math/result.cpp
+)
+
+if(WIN32)
+    add_executable(MyApp WIN32 ${SOURCES})  
+else()
+    add_executable(MyApp ${SOURCES})
+endif()
 
 # Include directories
 target_include_directories(MyApp PRIVATE
@@ -70,7 +78,6 @@ target_include_directories(MyApp PRIVATE
 if(WIN32)
     target_link_libraries(MyApp PRIVATE imgui glfw opengl32 gdi32 user32 kernel32 winmm)
 elseif(UNIX)
-    # For Linux if needed
     set(GLFW_LIB "${CMAKE_SOURCE_DIR}/lib/linux/libglfw3.a")
     target_link_libraries(MyApp PRIVATE imgui ${GLFW_LIB} pthread dl GL)
 endif()
