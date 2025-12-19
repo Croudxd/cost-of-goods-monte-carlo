@@ -197,7 +197,6 @@ void gui()
             std::lock_guard<std::mutex> lock1( objects_mutex );
             for ( const auto& name : names )
             {
-                std::lock_guard<std::mutex> lock1( objects_mutex );
                 objects.emplace_back( name, 1.0f, 1.0f );
             }
         }
@@ -252,10 +251,12 @@ void gui()
         }
         else
         {
-            std::future<void> future = std::async( std::launch::async, []
-                                                   {
-                                                       calculate();  // Perform the calculation in the background
-                                                   } );
+            std::thread( []()
+                         {
+                             calculate();  // run your Monte Carlo calculation in the background
+                         } )
+                .detach();  // detach immediately so it runs independently
+
         }
     }
     results();

@@ -48,6 +48,8 @@ add_library(imgui STATIC ${IMGUI_SOURCES})
 target_include_directories(imgui PRIVATE
     include/imgui
     include/imgui/backends
+    external/GLFW/include
+
 )
 
 # ---------------------------
