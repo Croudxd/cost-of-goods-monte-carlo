@@ -43,7 +43,7 @@ cmake --build . --config Release
 ```
 
 
-
+### Bugs
 Please email me at
 ```lua
 benjamincroud@gmail.com
