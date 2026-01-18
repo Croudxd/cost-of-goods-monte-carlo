@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <mutex>
+#include <random>
 #include <numeric>
 #include <thread>
 #include <vector>
@@ -13,7 +14,9 @@
 #include "imgui.h"
 #include "math/random.h"
 #include "math/result.h"
+#include <atomic>
 
+std::atomic<bool> is_calculating{false}; 
 // Vectors
 std::vector<Normal> objects;
 std::mutex objects_mutex;
@@ -23,18 +26,18 @@ static int simsize = 0;
 std::mutex simsize_mutex;
 
 // Results
-std::mutex max_result_mutex;
-static float max_result = 0.0f;
-std::mutex mean_result_mutex;
-static float mean_result = 0.0f;
-std::mutex tenthpercentile_result_mutex;
-static float tenthpercentile_result = 0.0f;
-std::mutex nintypercentile_result_mutex;
-static float nintypercentile_result = 0.0f;
-std::mutex min_result_mutex;
-static float min_result = 0.0f;
+std::mutex result_vec_mutex;
+std::vector<float> result_vec;
+
 std::mutex lnopercent_result_mutex;
-static float lnopercent_result = 0.0f;
+static std::vector<float> lnopercent_result;
+
+struct Result {
+    float lnopercent, max, min, mean, ninty, tenth = 0.0;
+};
+
+Result final_result;
+std::mutex Result_mutex;
 
 // Helpers
 
@@ -42,7 +45,7 @@ float mean( std::vector<float> vec )
 {
     if ( vec.empty() )
     {
-        return 0;
+        return 0.0;
     }
     auto count = static_cast<float>( vec.size() );
     return std::reduce( vec.begin(), vec.end() ) / count;
@@ -67,11 +70,16 @@ float percentile( std::vector<float> data, float p )
 }
 
 // Main monte carlo
+
 void calculate()
 {
+    is_calculating = true;
+    std::lock_guard<std::mutex> lock1( result_vec_mutex );
+    std::lock_guard<std::mutex> lock2( lnopercent_result_mutex );
     std::vector<Normal> local_objects;
     std::vector<Threepoint> local_threeobjects;
     int local_simsize;
+
     {
         std::lock_guard<std::mutex> lock1( objects_mutex );
         std::lock_guard<std::mutex> lock2( threeobjects_mutex );
@@ -81,87 +89,91 @@ void calculate()
         local_simsize = simsize;
     }
 
-    std::vector<std::vector<float>> normal_distribution_vector;
-    std::vector<std::vector<float>> triangle_distribution_vector;
+    std::random_device rd;
+    std::mt19937 gen( rd() );
 
-    for ( int x = 0; x < objects.size(); x++ )
+    std::vector<float> normal_distribution_vector;
+    std::vector<float> triangle_distribution_vector;
+
+    for ( int x = 0; x < simsize; x ++)
     {
-        normal_distribution_vector.push_back( gen_normal_distribution_vector( local_simsize, local_objects[x] ) );
+
+        for ( int x = 0; x < local_objects.size(); x++ )
+        {
+            normal_distribution_vector.push_back(gen_normal_distribution(local_simsize, local_objects[x], gen));
+        }
+
+        for ( int x = 0; x < threeobjects.size(); x++ )
+        {
+            triangle_distribution_vector.push_back(gen_triangle_distribution( local_simsize, local_threeobjects[x], gen));
+        }
+
+        int step_three_batch = s3_nm_batches( triangle_distribution_vector[10], normal_distribution_vector[7] );
+        int step_two_batch = s_num_batches( triangle_distribution_vector[10], normal_distribution_vector[4], normal_distribution_vector[6] );
+        int step_one_batch = s_num_batches( triangle_distribution_vector[10], normal_distribution_vector[3], normal_distribution_vector[5] );
+
+        float s3 = s_time( triangle_distribution_vector[7], step_three_batch, triangle_distribution_vector[8] );
+        float s2 = s_time( triangle_distribution_vector[5], step_two_batch, triangle_distribution_vector[6] );
+        float s1 = s_time( triangle_distribution_vector[3], step_one_batch, triangle_distribution_vector[4] );
+
+        float tot_time = Tot_Time( s3, s2, s1, triangle_distribution_vector[9] );
+        float rm =RM( normal_distribution_vector[2], normal_distribution_vector[0],triangle_distribution_vector[0], normal_distribution_vector[1],triangle_distribution_vector[1] );
+        float lno = LnO( tot_time, triangle_distribution_vector[2], triangle_distribution_vector[10] );
+
+        float result = rm + lno;
+        result_vec.push_back(result);
+        lnopercent_result.push_back(Percentage_LnO ( rm , lno));
+        triangle_distribution_vector.clear();
+        normal_distribution_vector.clear();
     }
 
-    for ( int x = 0; x < threeobjects.size(); x++ )
+
+    float local_lnopercent, local_max, local_min, local_mean, local_ninty, local_tenth; 
+    if (result_vec.empty())
     {
-        triangle_distribution_vector.push_back( gen_triangle_distribution_vector( local_simsize, local_threeobjects[x] ) );
+        local_lnopercent, local_max, local_min, local_mean, local_ninty, local_tenth = 0.0;
+    }
+    else {
+        local_max = *std::max_element( result_vec.begin(),result_vec.end() );
+        local_min = *std::min_element( result_vec.begin(), result_vec.end() );
+        local_mean = mean( result_vec );
+        local_tenth = percentile( result_vec, 0.10f );
+        local_ninty = percentile( result_vec, 0.90f );
     }
 
-    std::vector<int> step_three_batch = s3_nm_batches(
-        triangle_distribution_vector[10], normal_distribution_vector[7] );
-    std::vector<int> step_two_batch = s_num_batches(
-        triangle_distribution_vector[10], normal_distribution_vector[4],
-        normal_distribution_vector[6] );
-    std::vector<int> step_one_batch = s_num_batches(
-        triangle_distribution_vector[10], normal_distribution_vector[3],
-        normal_distribution_vector[5] );
+    Result result = { local_lnopercent, local_max, local_min, local_mean, local_ninty, local_tenth};
 
-    std::vector<float> s3 =
-        s_time( triangle_distribution_vector[7], step_three_batch,
-                triangle_distribution_vector[8] );
-    std::vector<float> s2 =
-        s_time( triangle_distribution_vector[5], step_two_batch,
-                triangle_distribution_vector[6] );
-    std::vector<float> s1 =
-        s_time( triangle_distribution_vector[3], step_one_batch,
-                triangle_distribution_vector[4] );
-
-    std::vector<float> tot_time =
-        Tot_Time( s3, s2, s1, triangle_distribution_vector[9] );
-    std::vector<float> rm =
-        RM( normal_distribution_vector[2], normal_distribution_vector[0],
-            triangle_distribution_vector[0], normal_distribution_vector[1],
-            triangle_distribution_vector[1] );
-
-    std::vector<float> lno = LnO( tot_time, triangle_distribution_vector[2],
-                                  triangle_distribution_vector[10] );
-    std::vector<float> results;
-    for ( int x = 0; x < rm.size(); x++ )
     {
-        float result = rm[x] + lno[x];
-        results.push_back( result );
+
+        std::lock_guard<std::mutex> lock1( Result_mutex );
+        final_result = result;
     }
 
-    std::lock_guard<std::mutex> lock( max_result_mutex );
-    max_result = *std::max_element( results.begin(), results.end() );
-
-    std::lock_guard<std::mutex> lnopercent_lock( lnopercent_result_mutex );
-    lnopercent_result = mean( Percentage_LnO( rm, lno ) );
-
-    std::lock_guard<std::mutex> min_result_lock( min_result_mutex );
-    min_result = *std::min_element( results.begin(), results.end() );
-
-    std::lock_guard<std::mutex> mean_result_lock( mean_result_mutex );
-    mean_result = mean( results );
-    // 10th and 90th
-    std::lock_guard<std::mutex> tenthpercentile_lock( tenthpercentile_result_mutex );
-    tenthpercentile_result = percentile( results, 0.10f );
-
-    std::lock_guard<std::mutex> nintypercentile_lock( nintypercentile_result_mutex );
-    nintypercentile_result = percentile( results, 0.90f );
+    is_calculating = false;
 }
+
 
 void results()
 {
-    float local_max, local_min, local_mean, local_ninty, local_tenth;
+    if (is_calculating) 
     {
-        std::lock_guard<std::mutex> lock1( max_result_mutex );
-        local_max = max_result;
-        std::lock_guard<std::mutex> lock2( min_result_mutex );
-        local_min = min_result;
-        std::lock_guard<std::mutex> lock3( mean_result_mutex );
-        local_mean = mean_result;
-        std::lock_guard<std::mutex> lock4( nintypercentile_result_mutex );
-        local_ninty = nintypercentile_result;
-        std::lock_guard<std::mutex> lock5( tenthpercentile_result_mutex );
-        local_tenth = tenthpercentile_result;
+        ImGui::ProgressBar(-1.0f * (float)ImGui::GetTime(), ImVec2(-1.0f, 0.0f), "Calculating...");
+        return;  
+    }
+
+    float local_lnopercent, local_max, local_min, local_mean, local_ninty, local_tenth;
+    {
+        Result display_stats;
+        {
+            std::lock_guard<std::mutex> lock(Result_mutex);
+            display_stats = final_result;
+        }
+        local_lnopercent = display_stats.lnopercent;
+        local_max = display_stats.max;
+        local_min = display_stats.min;
+        local_mean = display_stats.mean;
+        local_ninty = display_stats.ninty;
+        local_tenth = display_stats.tenth;
     }
 
     ImGui::TextDisabled( "MONTE CARLO SIMULATION STATISTICS" );
@@ -189,6 +201,7 @@ void results()
         ImGui::EndTable();
     }
 }
+
 void gui( GLFWwindow* window )
 {
     if ( objects.empty() )
@@ -217,6 +230,7 @@ void gui( GLFWwindow* window )
             "Restart Time: Step 3",
             "Setup & Cleaning",
             "Total API Volume" };
+
         std::lock_guard<std::mutex> lock1( objects_mutex );
         for ( const auto& name : names )
             objects.emplace_back( name, 1.0f, 1.0f );
