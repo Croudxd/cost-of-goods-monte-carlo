@@ -1,13 +1,12 @@
 #include "gui.h"
 
+#include <GLFW/glfw3.h>
+
 #include <algorithm>
-#include <future>
 #include <mutex>
 #include <numeric>
 #include <thread>
-#include <utility>
 #include <vector>
-#include <GLFW/glfw3.h>
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -26,19 +25,14 @@ std::mutex simsize_mutex;
 // Results
 std::mutex max_result_mutex;
 static float max_result = 0.0f;
-
 std::mutex mean_result_mutex;
 static float mean_result = 0.0f;
-
 std::mutex tenthpercentile_result_mutex;
 static float tenthpercentile_result = 0.0f;
-
 std::mutex nintypercentile_result_mutex;
 static float nintypercentile_result = 0.0f;
-
 std::mutex min_result_mutex;
 static float min_result = 0.0f;
-
 std::mutex lnopercent_result_mutex;
 static float lnopercent_result = 0.0f;
 
@@ -53,6 +47,7 @@ float mean( std::vector<float> vec )
     auto count = static_cast<float>( vec.size() );
     return std::reduce( vec.begin(), vec.end() ) / count;
 }
+
 float percentile( std::vector<float> data, float p )
 {
     if ( data.empty() )
@@ -67,7 +62,6 @@ float percentile( std::vector<float> data, float p )
     if ( hi >= data.size() )
         return data[lo];
 
-    // Linear interpolation (recommended)
     float weight = idx - lo;
     return data[lo] * ( 1.0f - weight ) + data[hi] * weight;
 }
@@ -75,19 +69,29 @@ float percentile( std::vector<float> data, float p )
 // Main monte carlo
 void calculate()
 {
-    std::lock_guard<std::mutex> lock1( objects_mutex );
-    std::lock_guard<std::mutex> lock2( threeobjects_mutex );
-    std::lock_guard<std::mutex> lock3( simsize_mutex );
+    std::vector<Normal> local_objects;
+    std::vector<Threepoint> local_threeobjects;
+    int local_simsize;
+    {
+        std::lock_guard<std::mutex> lock1( objects_mutex );
+        std::lock_guard<std::mutex> lock2( threeobjects_mutex );
+        std::lock_guard<std::mutex> lock3( simsize_mutex );
+        local_objects = objects;
+        local_threeobjects = threeobjects;
+        local_simsize = simsize;
+    }
+
     std::vector<std::vector<float>> normal_distribution_vector;
     std::vector<std::vector<float>> triangle_distribution_vector;
+
     for ( int x = 0; x < objects.size(); x++ )
     {
-        normal_distribution_vector.push_back( gen_normal_distribution_vector( simsize, objects[x] ) );
+        normal_distribution_vector.push_back( gen_normal_distribution_vector( local_simsize, local_objects[x] ) );
     }
 
     for ( int x = 0; x < threeobjects.size(); x++ )
     {
-        triangle_distribution_vector.push_back( gen_triangle_distribution_vector( simsize, threeobjects[x] ) );
+        triangle_distribution_vector.push_back( gen_triangle_distribution_vector( local_simsize, local_threeobjects[x] ) );
     }
 
     std::vector<int> step_three_batch = s3_nm_batches(
@@ -146,134 +150,193 @@ void calculate()
 
 void results()
 {
-    float local_max;
-    float local_min;
-    float local_mean;
-    float local_ninty;
-    float local_tenth;
+    float local_max, local_min, local_mean, local_ninty, local_tenth;
     {
-        std::lock_guard<std::mutex> maxlock( max_result_mutex );
+        std::lock_guard<std::mutex> lock1( max_result_mutex );
         local_max = max_result;
-        std::lock_guard<std::mutex> minlock( min_result_mutex );
+        std::lock_guard<std::mutex> lock2( min_result_mutex );
         local_min = min_result;
-        std::lock_guard<std::mutex> meanlock( mean_result_mutex );
+        std::lock_guard<std::mutex> lock3( mean_result_mutex );
         local_mean = mean_result;
-        std::lock_guard<std::mutex> nintylock( nintypercentile_result_mutex );
+        std::lock_guard<std::mutex> lock4( nintypercentile_result_mutex );
         local_ninty = nintypercentile_result;
-        std::lock_guard<std::mutex> tenthlock( tenthpercentile_result_mutex );
+        std::lock_guard<std::mutex> lock5( tenthpercentile_result_mutex );
         local_tenth = tenthpercentile_result;
     }
-    ImGui::Text( "Max: %f", local_max );
-    ImGui::Text( "Min: %f", local_min );
-    ImGui::Text( "Mean: %f", local_mean );
-    ImGui::Text( "10th percentile: %f", local_tenth );
-    ImGui::Text( "90th percentile: %f", local_ninty );
+
+    ImGui::TextDisabled( "MONTE CARLO SIMULATION STATISTICS" );
+    ImGui::Dummy( ImVec2( 0, 5 ) );
+    if ( ImGui::BeginTable( "ResultsTable", 2, ImGuiTableFlags_NoSavedSettings ) )
+    {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text( "Expected Mean:" );
+        ImGui::TableNextColumn();
+        ImGui::TextColored( ImVec4( 0.2f, 0.8f, 1.0f, 1.0f ), "$ %.2f", local_mean );  // Light Blue
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text( "Confidence (10th - 90th):" );
+        ImGui::TableNextColumn();
+        ImGui::Text( "%.2f - %.2f", local_tenth, local_ninty );
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text( "Range (Min - Max):" );
+        ImGui::TableNextColumn();
+        ImGui::Text( "%.2f - %.2f", local_min, local_max );
+
+        ImGui::EndTable();
+    }
 }
-
-void gui(GLFWwindow* window)
+void gui( GLFWwindow* window )
 {
-    objects.reserve( 10000000 );
-    threeobjects.reserve( 10000000 );
+    if ( objects.empty() )
+    {
+        // For the Normal objects
+        std::vector<std::string> names = {
+            "Raw Material 1 (Qty)",
+            "Raw Material 2 (Qty)",
+            "Solvents/Reagents Cost",
+            "Yield Efficiency (S1)",
+            "Yield Efficiency (S2)",
+            "Batch Size: Step 1",
+            "Batch Size: Step 2",
+            "Batch Size: Step 3" };
 
-    float x;
-    int display_w, display_h;
-    glfwGetFramebufferSize( window, &display_w, &display_h );
-    ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2( (float)display_w, (float)display_h );
+        // For the Three-point objects
+        std::vector<std::string> threevarname = {
+            "RM1 Cost ($/kg)",
+            "RM2 Cost ($/kg)",
+            "Labor & Overhead Rate",
+            "Cycle Time: Step 1 (hr)",
+            "Restart Time: Step 1",
+            "Cycle Time: Step 2 (hr)",
+            "Restart Time: Step 2",
+            "Cycle Time: Step 3 (hr)",
+            "Restart Time: Step 3",
+            "Setup & Cleaning",
+            "Total API Volume" };
+        std::lock_guard<std::mutex> lock1( objects_mutex );
+        for ( const auto& name : names )
+            objects.emplace_back( name, 1.0f, 1.0f );
+
+        std::lock_guard<std::mutex> lock2( threeobjects_mutex );
+        for ( const auto& name : threevarname )
+            threeobjects.emplace_back( name, 1.0f, 1.0f, 1.0f );
+    }
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // Fullscreen ImGui window
+    ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
     ImGui::SetNextWindowSize( io.DisplaySize );
-    ImGui::Begin( "Cost of goods", nullptr,
-                  ImGuiWindowFlags_NoTitleBar |
-                      ImGuiWindowFlags_NoResize |
-                      ImGuiWindowFlags_NoMove |
-                      ImGuiWindowFlags_NoCollapse );
 
-    if ( objects.empty() )
+    ImGui::Begin( "Main", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove );
+
+    if ( ImGui::BeginTable( "MainLayout", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV ) )
     {
-        std::vector<std::string> names = {
-            "RM1", "RM2", "RM_SolvntRgnt_Costs",
-            "UF_Step1", "UF_Step2", "Batch_Size_Step1",
-            "Batch_Size_Step2", "Batch_Size_Step3" };
-        std::vector<std::string> threevarname = {
-            "RM1_CostKg", "RM2_CostKg", "LnO_Rate",
-            "Cycle_Time_Step1", "Restart_Time_Step1", "Cycle_Time_Step2",
-            "Restart_Time_Step2", "Cycle_Time_Step3", "Restart_Time_Step3",
-            "Setup_Cleaning", "api_volume" };
+        ImGui::TableSetupColumn( "Inputs", ImGuiTableColumnFlags_WidthStretch, 0.65f );
+        ImGui::TableSetupColumn( "Dashboard", ImGuiTableColumnFlags_WidthStretch, 0.35f );
+        ImGui::TableNextRow();
 
-        // Initialize  objects with ones
+        ImGui::TableNextColumn();
+        ImGui::BeginChild( "InputRegion", ImVec2( 0, 0 ), false, ImGuiWindowFlags_AlwaysVerticalScrollbar );
+
+        ImGui::TextColored( ImVec4( 0.4f, 0.7f, 1.0f, 1.0f ), "NORMAL DISTRIBUTIONS" );
+        ImGui::Separator();
+        if ( ImGui::BeginTable( "NormalFields", 3, ImGuiTableFlags_RowBg ) )
         {
-            std::lock_guard<std::mutex> lock1( objects_mutex );
-            for ( const auto& name : names )
+            ImGui::TableSetupColumn( "Variable", ImGuiTableColumnFlags_WidthFixed, 180.0f );
+            ImGui::TableSetupColumn( "Mean" );
+            ImGui::TableSetupColumn( "StdDev" );
+            ImGui::TableHeadersRow();
+
+            std::lock_guard<std::mutex> lock( objects_mutex );
+            for ( size_t i = 0; i < objects.size(); i++ )
             {
-                objects.emplace_back( name, 1.0f, 1.0f );
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "%s", objects[i].getName().c_str() );
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth( -1 );
+                ImGui::InputFloat( ( "##u" + std::to_string( i ) ).c_str(), &objects[i].getOne(), 0, 0, "%.2f" );
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth( -1 );
+                ImGui::InputFloat( ( "##s" + std::to_string( i ) ).c_str(), &objects[i].getTwo(), 0, 0, "%.2f" );
             }
+            ImGui::EndTable();
         }
 
+        ImGui::Spacing();
+        ImGui::Spacing();
+
+        ImGui::TextColored( ImVec4( 0.4f, 0.7f, 1.0f, 1.0f ), "THREE-POINT DISTRIBUTIONS" );
+        ImGui::Separator();
+        if ( ImGui::BeginTable( "ThreeFields", 4, ImGuiTableFlags_RowBg ) )
         {
-            std::lock_guard<std::mutex> lock1( threeobjects_mutex );
-            for ( const auto& name : threevarname )
+            ImGui::TableSetupColumn( "Variable", ImGuiTableColumnFlags_WidthFixed, 180.0f );
+            ImGui::TableSetupColumn( "Min" );
+            ImGui::TableSetupColumn( "Mode" );
+            ImGui::TableSetupColumn( "Max" );
+            ImGui::TableHeadersRow();
+
+            std::lock_guard<std::mutex> lock( threeobjects_mutex );
+            for ( size_t i = 0; i < threeobjects.size(); i++ )
             {
-                threeobjects.emplace_back( name, 1.0f, 1.0f, 1.0f );
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "%s", threeobjects[i].getName().c_str() );
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth( -1 );
+                ImGui::InputFloat( ( "##min" + std::to_string( i ) ).c_str(), &threeobjects[i].getMin(), 0, 0, "%.2f" );
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth( -1 );
+                ImGui::InputFloat( ( "##mod" + std::to_string( i ) ).c_str(), &threeobjects[i].getMode(), 0, 0, "%.2f" );
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth( -1 );
+                ImGui::InputFloat( ( "##max" + std::to_string( i ) ).c_str(), &threeobjects[i].getMax(), 0, 0, "%.2f" );
             }
+            ImGui::EndTable();
         }
-    }
+        ImGui::EndChild();
 
-    {
-        std::lock_guard<std::mutex> lock1( objects_mutex );
-        for ( size_t i = 0; i < objects.size(); i++ )
+        ImGui::TableNextColumn();
+        ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.10f, 0.10f, 0.12f, 1.00f ) );
+        if ( ImGui::BeginChild( "ResultDashboard", ImVec2( 0, 0 ), true, ImGuiChildFlags_AlwaysUseWindowPadding ) )
         {
-            Normal& n = objects[i];
+            ImGui::Text( "CONTROL PANEL" );
+            ImGui::Separator();
 
-            ImGui::PushID( static_cast<int>( i ) );
-            ImGui::Text( "%s", n.getName().c_str() );
-            ImGui::InputFloat( ( "##one" + std::to_string( i ) ).c_str(), &n.getOne() );
-            ImGui::InputFloat( ( "##two" + std::to_string( i ) ).c_str(), &n.getTwo() );
-            ImGui::PopID();
+            ImGui::Text( "Sim Count:" );
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth( -1 );
+            ImGui::InputInt( "##SimCount", &simsize );
+
+            if ( ImGui::Button( "RUN MONTE CARLO", ImVec2( -1, 50 ) ) )
+            {
+                if ( simsize > 0 )
+                {
+                    std::thread( []()
+                                 { calculate(); } )
+                        .detach();
+                }
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            results();
         }
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+
+        ImGui::EndTable();
     }
 
-    {
-        std::lock_guard<std::mutex> lock1( threeobjects_mutex );
-        for ( size_t i = 0; i < threeobjects.size(); i++ )
-        {
-            Threepoint& n = threeobjects[i];
-            ImGui::PushID( static_cast<int>( i ) );
-            ImGui::Text( "%s", n.getName().c_str() );
-            ImGui::InputFloat( ( "##min" + std::to_string( i ) ).c_str(), &n.getMin() );
-            ImGui::InputFloat( ( "##mode" + std::to_string( i ) ).c_str(), &n.getMode() );
-            ImGui::InputFloat( ( "##max" + std::to_string( i ) ).c_str(), &n.getMax() );
-            ImGui::PopID();
-        }
-    }
-
-    {
-        std::lock_guard<std::mutex> lock1( simsize_mutex );
-        ImGui::InputInt( "Simulation Count", &simsize );
-    }
-
-    if ( ImGui::Button( "Calculate" ) )
-    {
-        std::lock_guard<std::mutex> lock1( simsize_mutex );
-        if ( simsize <= 0 )
-        {
-        }
-        else
-        {
-            std::thread( []()
-                         {
-                             calculate();  // run your Monte Carlo calculation in the background
-                         } )
-                .detach();  // detach immediately so it runs independently
-
-        }
-    }
-    results();
     ImGui::End();
     ImGui::Render();
 }

@@ -24,30 +24,30 @@
 // - Introduction, links and more at the top of imgui.cpp
 
 #pragma once
-#include "imgui.h"      // IMGUI_IMPL_API
+#include "imgui.h"  // IMGUI_IMPL_API
 #ifndef IMGUI_DISABLE
 
 struct SDL_Renderer;
 
 // Follow "Getting Started" link and check examples/ folder to learn about using backends!
-IMGUI_IMPL_API bool     ImGui_ImplSDLRenderer3_Init(SDL_Renderer* renderer);
-IMGUI_IMPL_API void     ImGui_ImplSDLRenderer3_Shutdown();
-IMGUI_IMPL_API void     ImGui_ImplSDLRenderer3_NewFrame();
-IMGUI_IMPL_API void     ImGui_ImplSDLRenderer3_RenderDrawData(ImDrawData* draw_data, SDL_Renderer* renderer);
+IMGUI_IMPL_API bool ImGui_ImplSDLRenderer3_Init( SDL_Renderer* renderer );
+IMGUI_IMPL_API void ImGui_ImplSDLRenderer3_Shutdown();
+IMGUI_IMPL_API void ImGui_ImplSDLRenderer3_NewFrame();
+IMGUI_IMPL_API void ImGui_ImplSDLRenderer3_RenderDrawData( ImDrawData* draw_data, SDL_Renderer* renderer );
 
 // Called by Init/NewFrame/Shutdown
-IMGUI_IMPL_API void     ImGui_ImplSDLRenderer3_CreateDeviceObjects();
-IMGUI_IMPL_API void     ImGui_ImplSDLRenderer3_DestroyDeviceObjects();
+IMGUI_IMPL_API void ImGui_ImplSDLRenderer3_CreateDeviceObjects();
+IMGUI_IMPL_API void ImGui_ImplSDLRenderer3_DestroyDeviceObjects();
 
 // (Advanced) Use e.g. if you need to precisely control the timing of texture updates (e.g. for staged rendering), by setting ImDrawData::Textures = NULL to handle this manually.
-IMGUI_IMPL_API void     ImGui_ImplSDLRenderer3_UpdateTexture(ImTextureData* tex);
+IMGUI_IMPL_API void ImGui_ImplSDLRenderer3_UpdateTexture( ImTextureData* tex );
 
 // [BETA] Selected render state data shared with callbacks.
 // This is temporarily stored in GetPlatformIO().Renderer_RenderState during the ImGui_ImplSDLRenderer3_RenderDrawData() call.
 // (Please open an issue if you feel you need access to more data)
 struct ImGui_ImplSDLRenderer3_RenderState
 {
-    SDL_Renderer*       Renderer;
+    SDL_Renderer* Renderer;
 };
 
-#endif // #ifndef IMGUI_DISABLE
+#endif  // #ifndef IMGUI_DISABLE

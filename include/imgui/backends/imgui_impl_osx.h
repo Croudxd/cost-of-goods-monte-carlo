@@ -20,7 +20,7 @@
 // - Introduction, links and more at the top of imgui.cpp
 
 #pragma once
-#include "imgui.h"      // IMGUI_IMPL_API
+#include "imgui.h"  // IMGUI_IMPL_API
 #ifndef IMGUI_DISABLE
 
 #ifdef __OBJC__
@@ -29,9 +29,9 @@
 @class NSView;
 
 // Follow "Getting Started" link and check examples/ folder to learn about using backends!
-IMGUI_IMPL_API bool     ImGui_ImplOSX_Init(NSView* _Nonnull view);
-IMGUI_IMPL_API void     ImGui_ImplOSX_Shutdown();
-IMGUI_IMPL_API void     ImGui_ImplOSX_NewFrame(NSView* _Nullable view);
+IMGUI_IMPL_API bool ImGui_ImplOSX_Init( NSView* _Nonnull view );
+IMGUI_IMPL_API void ImGui_ImplOSX_Shutdown();
+IMGUI_IMPL_API void ImGui_ImplOSX_NewFrame( NSView* _Nullable view );
 
 #endif
 
@@ -44,11 +44,11 @@ IMGUI_IMPL_API void     ImGui_ImplOSX_NewFrame(NSView* _Nullable view);
 #ifndef __OBJC__
 
 // Follow "Getting Started" link and check examples/ folder to learn about using backends!
-IMGUI_IMPL_API bool     ImGui_ImplOSX_Init(void* _Nonnull view);
-IMGUI_IMPL_API void     ImGui_ImplOSX_Shutdown();
-IMGUI_IMPL_API void     ImGui_ImplOSX_NewFrame(void* _Nullable view);
+IMGUI_IMPL_API bool ImGui_ImplOSX_Init( void* _Nonnull view );
+IMGUI_IMPL_API void ImGui_ImplOSX_Shutdown();
+IMGUI_IMPL_API void ImGui_ImplOSX_NewFrame( void* _Nullable view );
 
 #endif
 #endif
 
-#endif // #ifndef IMGUI_DISABLE
+#endif  // #ifndef IMGUI_DISABLE

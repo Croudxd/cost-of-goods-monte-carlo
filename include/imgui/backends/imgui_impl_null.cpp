@@ -18,8 +18,8 @@
 #include "imgui_impl_null.h"
 
 // Clang/GCC warnings with -Weverything
-#if defined(__clang__)
-#pragma clang diagnostic ignored "-Wold-style-cast"         // warning: use of old-style cast                            // yes, they are more terse.
+#if defined( __clang__ )
+#pragma clang diagnostic ignored "-Wold-style-cast"  // warning: use of old-style cast                            // yes, they are more terse.
 #endif
 
 IMGUI_IMPL_API bool ImGui_ImplNull_Init()
@@ -57,7 +57,7 @@ IMGUI_IMPL_API void ImGui_ImplNullPlatform_Shutdown()
 IMGUI_IMPL_API void ImGui_ImplNullPlatform_NewFrame()
 {
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2(1920, 1080);
+    io.DisplaySize = ImVec2( 1920, 1080 );
     io.DeltaTime = 1.0f / 60.0f;
 }
 
@@ -80,23 +80,23 @@ IMGUI_IMPL_API void ImGui_ImplNullRender_NewFrame()
 {
 }
 
-static void ImGui_ImplNullRender_UpdateTexture(ImTextureData* tex)
+static void ImGui_ImplNullRender_UpdateTexture( ImTextureData* tex )
 {
-    if (tex->Status == ImTextureStatus_WantCreate || tex->Status == ImTextureStatus_WantDestroy)
-        tex->SetStatus(ImTextureStatus_OK);
-    if (tex->Status == ImTextureStatus_WantDestroy)
+    if ( tex->Status == ImTextureStatus_WantCreate || tex->Status == ImTextureStatus_WantDestroy )
+        tex->SetStatus( ImTextureStatus_OK );
+    if ( tex->Status == ImTextureStatus_WantDestroy )
     {
-        tex->SetTexID(ImTextureID_Invalid);
-        tex->SetStatus(ImTextureStatus_Destroyed);
+        tex->SetTexID( ImTextureID_Invalid );
+        tex->SetStatus( ImTextureStatus_Destroyed );
     }
 }
 
-IMGUI_IMPL_API void ImGui_ImplNullRender_RenderDrawData(ImDrawData* draw_data)
+IMGUI_IMPL_API void ImGui_ImplNullRender_RenderDrawData( ImDrawData* draw_data )
 {
-    if (draw_data->Textures != nullptr)
-        for (ImTextureData* tex : *draw_data->Textures)
-            if (tex->Status != ImTextureStatus_OK)
-                ImGui_ImplNullRender_UpdateTexture(tex);
+    if ( draw_data->Textures != nullptr )
+        for ( ImTextureData* tex : *draw_data->Textures )
+            if ( tex->Status != ImTextureStatus_OK )
+                ImGui_ImplNullRender_UpdateTexture( tex );
 }
 
-#endif // #ifndef IMGUI_DISABLE
+#endif  // #ifndef IMGUI_DISABLE

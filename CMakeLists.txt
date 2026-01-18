@@ -1,15 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 project(MyApp LANGUAGES CXX)
 
-# ---------------------------
-# C++ standard
-# ---------------------------
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# ---------------------------
-# Force static CRT on MSVC (single exe)
-# ---------------------------
 if(MSVC)
     foreach(flag_var
             CMAKE_C_FLAGS_RELEASE
@@ -22,9 +16,7 @@ if(MSVC)
     endforeach()
 endif()
 
-# ---------------------------
 # GLFW
-# ---------------------------
 if(WIN32)
     set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
     set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -34,9 +26,7 @@ if(WIN32)
     add_subdirectory(external/GLFW)
 endif()
 
-# ---------------------------
 # ImGui sources
-# ---------------------------
 file(GLOB IMGUI_SOURCES
     include/imgui/*.cpp
     include/imgui/backends/imgui_impl_glfw.cpp
@@ -50,9 +40,6 @@ target_include_directories(imgui PRIVATE
     external/GLFW/include
 )
 
-# ---------------------------
-# Your executable
-# ---------------------------
 file(GLOB_RECURSE SOURCES
     src/main.cpp
     src/gui/gui.cpp

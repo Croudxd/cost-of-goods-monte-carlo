@@ -10,25 +10,25 @@
 // - Introduction, links and more at the top of imgui.cpp
 
 #pragma once
-#include "imgui.h"      // IMGUI_IMPL_API
+#include "imgui.h"  // IMGUI_IMPL_API
 #ifndef IMGUI_DISABLE
 
 // Follow "Getting Started" link and check examples/ folder to learn about using backends!
 
 // Null = NullPlatform + NullRender
-IMGUI_IMPL_API bool     ImGui_ImplNull_Init();
-IMGUI_IMPL_API void     ImGui_ImplNull_Shutdown();
-IMGUI_IMPL_API void     ImGui_ImplNull_NewFrame();
+IMGUI_IMPL_API bool ImGui_ImplNull_Init();
+IMGUI_IMPL_API void ImGui_ImplNull_Shutdown();
+IMGUI_IMPL_API void ImGui_ImplNull_NewFrame();
 
 // Null platform only (single screen, fixed timestep, no inputs)
-IMGUI_IMPL_API bool     ImGui_ImplNullPlatform_Init();
-IMGUI_IMPL_API void     ImGui_ImplNullPlatform_Shutdown();
-IMGUI_IMPL_API void     ImGui_ImplNullPlatform_NewFrame();
+IMGUI_IMPL_API bool ImGui_ImplNullPlatform_Init();
+IMGUI_IMPL_API void ImGui_ImplNullPlatform_Shutdown();
+IMGUI_IMPL_API void ImGui_ImplNullPlatform_NewFrame();
 
 // Null renderer only (no output)
-IMGUI_IMPL_API bool     ImGui_ImplNullRender_Init();
-IMGUI_IMPL_API void     ImGui_ImplNullRender_Shutdown();
-IMGUI_IMPL_API void     ImGui_ImplNullRender_NewFrame();
-IMGUI_IMPL_API void     ImGui_ImplNullRender_RenderDrawData(ImDrawData* draw_data);
+IMGUI_IMPL_API bool ImGui_ImplNullRender_Init();
+IMGUI_IMPL_API void ImGui_ImplNullRender_Shutdown();
+IMGUI_IMPL_API void ImGui_ImplNullRender_NewFrame();
+IMGUI_IMPL_API void ImGui_ImplNullRender_RenderDrawData( ImDrawData* draw_data );
 
-#endif // #ifndef IMGUI_DISABLE
+#endif  // #ifndef IMGUI_DISABLE
