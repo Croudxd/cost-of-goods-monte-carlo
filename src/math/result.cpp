@@ -2,6 +2,8 @@
 
 #include <cmath>
 #include <utility>
+#include <vector>
+
 
 int s3_nm_batches(float api_volume, float batch_size_step_three )
 {
@@ -37,17 +39,10 @@ float LnO( float tot_time, float lno_rate, float api_volume )
     return result;
 }
 
-std::vector<float> Percentage_LnO( std::vector<float> rm,
-                                   std::vector<float> lno )
+float Percentage_LnO( float rm, float lno )
 {
-    std::vector<float> results;
-    results.reserve( 10000000 );
-    for ( int x = 0; x < rm.size(); x++ )
-    {
-        float result = rm[x] / lno[x];
-        results.push_back( std::move( result ) );
-    }
-    return results;
+    float result = rm / lno;
+    return result;
 }
 
 std::vector<float> API_COGs_model( std::vector<float> rm,

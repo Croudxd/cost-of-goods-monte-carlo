@@ -2,14 +2,14 @@
 
 #include "model/normal.h"
 
-float gen_normal_distribution( int simsize, Normal& n, std::mt19937 gen)
+float gen_normal_distribution( int simsize, Normal& n, std::mt19937& gen)
 {
     std::normal_distribution<> d( n.getOne(), n.getTwo() );
     float result = d( gen );
     return result;
 }
 
-float gen_triangle_distribution( int simsize, Threepoint& n, std::mt19937 gen )
+float gen_triangle_distribution( int simsize, Threepoint& n, std::mt19937& gen )
 {
         std::uniform_real_distribution<> dis( 0.0, 1.0 );
         float U = dis( gen );
