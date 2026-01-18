@@ -1,6 +1,8 @@
 # cost-of-goods-monte-carlo
 Monte carlo model for predicting the price of goods from select inputs.
 
+The simulation is good until around 4 million + simsize, where it starts taking a very long time and can be funny on my machine anyway.
+
 **(Built for my dad)**
 
 ## Built using glfw and ImGui.
