@@ -73,50 +73,53 @@ float percentile( std::vector<float> data, float p )
 }
 
 // Main monte carlo
+
 void calculate()
 {
-    std::vector<Normal> local_objects;
-    std::vector<Threepoint> local_threeobjects;
-    int local_simsize;
-    {
-        std::lock_guard<std::mutex> lock1(objects_mutex);
-        std::lock_guard<std::mutex> lock2(threeobjects_mutex);
-        std::lock_guard<std::mutex> lock3(simsize_mutex);
-        local_objects = objects;
-        local_threeobjects = threeobjects;
-        local_simsize = simsize;
-    }
+    std::vector<Normal> local_objects;
+    std::vector<Threepoint> local_threeobjects;
+    int local_simsize;
+    {
+        std::lock_guard<std::mutex> lock1( objects_mutex );
+        std::lock_guard<std::mutex> lock2( threeobjects_mutex );
+        std::lock_guard<std::mutex> lock3( simsize_mutex );
+        local_objects = objects;
+        local_threeobjects = threeobjects;
+        local_simsize = simsize;
+    }
 
-    std::vector<float> final_cogs_list;
-    final_cogs_list.reserve(local_simsize); // Allocate once!
+    std::vector<float> normal_distribution_vector;
+    std::vector<float> triangle_distribution_vector;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::random_device rd;
+    std::mt19937 gen( rd() );
 
-    for (int i = 0; i < local_simsize; i++) 
-    {
-        float api_vol = local_threeobjects[10].generate(gen);
-        float rm1_qty = local_objects[0].generate(gen);
-        float rm1_price = local_threeobjects[0].generate(gen);
+    for ( int x = 0; x < local_objects.size(); x++ )
+    {
+        normal_distribution_vector = gen_normal_distribution(local_simsize, local_objects[x], gen);
+    }
 
+    for ( int x = 0; x < threeobjects.size(); x++ )
+    {
+         triangle_distribution_vector = gen_triangle_distribution( local_simsize, local_threeobjects[x], gen);
+    }
 
+    int step_three_batch = s3_nm_batches( triangle_distribution_vector[10], normal_distribution_vector[7] );
+    int step_two_batch = s_num_batches( triangle_distribution_vector[10], normal_distribution_vector[4], normal_distribution_vector[6] );
+    int step_one_batch = s_num_batches( triangle_distribution_vector[10], normal_distribution_vector[3], normal_distribution_vector[5] );
 
-        int step_three_batch = calc_s3_nm_batches(api_vol, local_objects[7].generate(gen));
-        int step_two_batch   = calc_s_num_batches(api_vol, local_objects[4].generate(gen), local_objects[6].generate(gen));
-        
-        float s3_t = calc_s_time(local_threeobjects[7].generate(gen), step_three_batch, local_threeobjects[8].generate(gen));
-        float s2_t = calc_s_time(local_threeobjects[5].generate(gen), step_two_batch, local_threeobjects[6].generate(gen));
-        float s1_t = calc_s_time(local_threeobjects[3].generate(gen), 0 /*batch logic*/, local_threeobjects[4].generate(gen));
+    float s3 = s_time( triangle_distribution_vector[7], step_three_batch, triangle_distribution_vector[8] );
+    float s2 = s_time( triangle_distribution_vector[5], step_two_batch, triangle_distribution_vector[6] );
+    float s1 = s_time( triangle_distribution_vector[3], step_one_batch, triangle_distribution_vector[4] );
 
-        float tot_time = s3_t + s2_t + s1_t + local_threeobjects[9].generate(gen);
-        
-        float rm_cost = local_objects[2].generate(gen) + (rm1_qty * rm1_price) + ...;
-        float lno_cost = (tot_time * local_threeobjects[2].generate(gen)) / api_vol;
+    float tot_time = Tot_Time( s3, s2, s1, triangle_distribution_vector[9] );
+    float rm =RM( normal_distribution_vector[2], normal_distribution_vector[0],triangle_distribution_vector[0], normal_distribution_vector[1],triangle_distribution_vector[1] );
+    float lno = LnO( tot_time, triangle_distribution_vector[2], triangle_distribution_vector[10] );
 
-        final_cogs_list.push_back(rm_cost + lno_cost);
-    }
-    update_dashboard_results(final_cogs_list);
+    float result = rm[x] + lno[x];
+    results.push_back(result);
 }
+
 
 void results()
 {
