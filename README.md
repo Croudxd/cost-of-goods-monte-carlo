@@ -7,7 +7,9 @@ Monte carlo model for predicting the price of goods from select inputs.
 Both are small enough to be statically linked. so no dependencies other than if your building cmake and a cpp compiler (17).
 
 ## Preview
-![Gif](/program.gif)
+
+https://github.com/user-attachments/assets/b6c86aab-e975-49ae-b563-31492b934abb
+
 
 ### Building on linux.
 
