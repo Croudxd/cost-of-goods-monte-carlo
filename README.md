@@ -16,7 +16,7 @@ https://github.com/user-attachments/assets/b6c86aab-e975-49ae-b563-31492b934abb
 ### Building on linux.
 
 ```c
-git clone https://github.com/yourname/project-name.git
+git clone https://github.com/Croudxd/cost-of-goods-monte-carlo
 ```
 
 ```c
@@ -33,7 +33,7 @@ make -j
 ### Building on windows.
 
 ```c
-git clone https://github.com/yourname/project-name.git
+git clone https://github.com/Croudxd/cost-of-goods-monte-carlo
 ```
 
 ```c
