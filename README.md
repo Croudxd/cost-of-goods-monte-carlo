@@ -51,7 +51,7 @@ cmake --build . --config Release
 #### Now built we can run the program :
 
 ```c
-./MyApp
+./MonteCarlo
 ```
 
 
