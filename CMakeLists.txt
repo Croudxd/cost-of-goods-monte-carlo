@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(MyApp LANGUAGES CXX)
+project(MonteCarlo LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -48,13 +48,13 @@ file(GLOB_RECURSE SOURCES
 )
 
 if(WIN32)
-    add_executable(MyApp WIN32 ${SOURCES})  
+    add_executable(MonteCarlo WIN32 ${SOURCES})  
 else()
-    add_executable(MyApp ${SOURCES})
+    add_executable(MonteCarlo ${SOURCES})
 endif()
 
 # Include directories
-target_include_directories(MyApp PRIVATE
+target_include_directories(MonteCarlo PRIVATE
     src
     include
     include/imgui
@@ -63,8 +63,8 @@ target_include_directories(MyApp PRIVATE
 
 # Link libraries
 if(WIN32)
-    target_link_libraries(MyApp PRIVATE imgui glfw opengl32 gdi32 user32 kernel32 winmm)
+    target_link_libraries(MonteCarlo PRIVATE imgui glfw opengl32 gdi32 user32 kernel32 winmm)
 elseif(UNIX)
     set(GLFW_LIB "${CMAKE_SOURCE_DIR}/lib/linux/libglfw3.a")
-    target_link_libraries(MyApp PRIVATE imgui ${GLFW_LIB} pthread dl GL)
+    target_link_libraries(MonteCarlo PRIVATE imgui ${GLFW_LIB} pthread dl GL)
 endif()
