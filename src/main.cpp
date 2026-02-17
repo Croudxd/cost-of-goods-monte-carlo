@@ -53,7 +53,7 @@ int main()
 
     if ( font == nullptr )
     {
-        std::cerr << "Bombaclart";
+        std::cerr << "Failed to load font";
         return -1;
     }
     ImGui::StyleColorsDark();
